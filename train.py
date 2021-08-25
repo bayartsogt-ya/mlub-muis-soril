@@ -57,8 +57,17 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     output_dir = "mlub-" + \
-            args.model_name_or_path.split('/')[0] + \
+            f"{args.model_name_or_path.split('/')[0]}-" + \
             f"tr{args.truncate_length}"
+
+    # ----------------------------- HF API --------------------------------
+    if args.push_to_hub:
+        hf_token = HfFolder.get_token(); api = HfApi()
+        repo_link = api.create_repo(token=hf_token, name=output_dir, exist_ok=True, private=True)
+        repo = Repository(local_dir=output_dir, clone_from=repo_link, use_auth_token=hf_token, git_user=GIT_USER, git_email=GIT_EMAIL)
+        print("[success] configured HF Hub to", output_dir)
+    else:
+        os.makedirs(output_dir, exist_ok=True)
 
     with open(f"{output_dir}/training_arguments.json", "w") as writer:
         json.dump(vars(args), writer, indent=4)
@@ -85,14 +94,7 @@ if __name__ == "__main__":
         # run_name = 'ulaanbal train exp0'
     )
 
-    # ----------------------------- HF API --------------------------------
-    if args.push_to_hub:
-        hf_token = HfFolder.get_token(); api = HfApi()
-        repo_link = api.create_repo(token=hf_token, name=output_dir, exist_ok=True, private=True)
-        repo = Repository(local_dir=output_dir, clone_from=repo_link, use_auth_token=hf_token, git_user=GIT_USER, git_email=GIT_EMAIL)
-        print("[success] configured HF Hub to", output_dir)
-    else:
-        os.makedirs(output_dir, exist_ok=True)
+    
 
     # ----------------------------- DATA --------------------------------
     print("loading data")
