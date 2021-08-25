@@ -129,7 +129,7 @@ if __name__ == "__main__":
     tokenizer.save_pretrained(output_dir)
 
     df_test["synset_index"] = 0
-    test_dataset = CustomDataset(df_test, tokenizer)
+    test_dataset = CustomDataset(df_test, tokenizer, max_len=args.max_len)
 
     predictions = []
     oof = np.zeros((df_train.shape[0], num_labels))
@@ -138,8 +138,8 @@ if __name__ == "__main__":
         train = df_train.query("fold!=@fold")
         valid = df_train.query("fold==@fold")
 
-        train_dataset = CustomDataset(train, tokenizer)
-        valid_dataset = CustomDataset(valid, tokenizer)
+        train_dataset = CustomDataset(train, tokenizer, max_len=args.max_len)
+        valid_dataset = CustomDataset(valid, tokenizer, max_len=args.max_len)
 
         training_args.output_dir = f"{output_dir}/fold_{fold}"
 
