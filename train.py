@@ -46,7 +46,7 @@ if __name__ == "__main__":
     parser.add_argument("--warmup-steps", type=int, default=400, help="Number of warm up steps")
     parser.add_argument("--roberta-large-optimizer", action="store_true", default=False, help="Use specific optimizer for Large models")
     parser.add_argument("--truncate-length", type=int, default=30, help="Effective length of the train input")
-    parser.add_argument("--max-len", type=int, default=30, help="Effective length of the train input")
+    parser.add_argument("--max-len", type=int, default=150, help="Effective length of the train input")
 
     # dataloader
     parser.add_argument("--seed", type=int, default=42, help="If passed, seed will be used for reproducability")
