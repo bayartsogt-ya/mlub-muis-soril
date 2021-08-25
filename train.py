@@ -128,6 +128,9 @@ if __name__ == "__main__":
     tokenizer = AutoTokenizer.from_pretrained(args.model_name_or_path)
     tokenizer.save_pretrained(output_dir)
 
+    os.environ["TOKENIZERS_PARALLELISM"] = "false"
+    print(f"TOKENIZERS_PARALLELISM = {os.environ['TOKENIZERS_PARALLELISM']}")
+
     df_test["synset_index"] = 0
     test_dataset = CustomDataset(df_test, tokenizer, max_len=args.max_len)
 
