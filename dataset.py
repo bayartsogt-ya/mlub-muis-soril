@@ -34,7 +34,13 @@ def tokenize_mlub(text, tokenizer, max_len):
         raise Exception("input_ids is longer than max_len, please increase max_len")
     
     attention_mask += [0] * (max_len - len(input_ids))
-    input_ids.extend([tokenizer.pad_token_id] * (max_len - len(input_ids)))
+
+    if tokenizer.is_fast and tokenizer.pad_token_id < tokenizer.vocab_size - 1:
+        padding_id = tokenizer.pad_token_id
+    else:
+        padding_id = tokenizer.eos_token_id
+
+    input_ids.extend([padding_id] * (max_len - len(input_ids)))
 
     start_end_mask = [0] * max_len
     for i in range(start, end):
