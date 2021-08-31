@@ -40,6 +40,9 @@ def tokenize_mlub(text, tokenizer, max_len):
     else:
         padding_id = tokenizer.eos_token_id
 
+    if "gpt" in tokenizer.name_or_path:
+        padding_id = 1 # which is <pad>
+
     input_ids.extend([padding_id] * (max_len - len(input_ids)))
 
     start_end_mask = [0] * max_len
