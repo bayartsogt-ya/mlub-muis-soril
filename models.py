@@ -28,7 +28,9 @@ class MLUBModel(nn.Module):
         )
         
     def forward(self, input_ids, attention_mask, start_end_mask, labels=None):
-        outputs = self.base_model(input_ids, attention_mask)
+        outputs = self.base_model(
+            input_ids=input_ids, 
+            attention_mask=attention_mask)
         x = outputs.last_hidden_state
         b, s, h = x.size()
         start_end_mask = start_end_mask.unsqueeze(-1).expand(b, s, h)
