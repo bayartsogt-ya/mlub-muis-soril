@@ -94,8 +94,6 @@ if __name__ == "__main__":
         # run_name = 'ulaanbal train exp0'
     )
 
-    
-
     # ----------------------------- DATA --------------------------------
     print("loading data")
     BASE_DIR = "data/preprocessed"

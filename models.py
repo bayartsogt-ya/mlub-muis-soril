@@ -6,10 +6,15 @@ from transformers.modeling_outputs import SequenceClassifierOutput
 loss_fn = nn.CrossEntropyLoss()
 
 class MLUBModel(nn.Module):
-    def __init__(self, model_name_or_path, num_labels, inference=False):
+    def __init__(self, model_name_or_path, num_labels, inference=False, linear_dropout=0.1, base_model_dropout=None):
         super().__init__()
         config = AutoConfig.from_pretrained(model_name_or_path)
         config.num_labels = num_labels
+
+        if base_model_dropout:
+            print(f"[important] changing `base_model_dropout` to {base_model_dropout}")
+            config.hidden_dropout_prob = base_model_dropout
+            config.attention_probs_dropout_prob = base_model_dropout
 
         if inference:
             self.base_model = AutoModel.from_config(config=config)
@@ -18,7 +23,7 @@ class MLUBModel(nn.Module):
 
         self.linear = nn.Sequential(
             nn.Linear(config.hidden_size, config.hidden_size),
-            nn.Dropout(0.1),
+            nn.Dropout(linear_dropout),
             nn.Linear(config.hidden_size, num_labels),
         )
         
