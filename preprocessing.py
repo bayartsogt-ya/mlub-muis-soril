@@ -31,6 +31,27 @@ def preprocess_test(text:str):
     
     return preprocess(text) # delegate preprocess
     
+def encode_clean_meaning(df_synset_meaning, tokenizer, max_length, device):
+    """
+    return device configured tensor for meaning text.
+    This will be used `MLUBModelWithMeaningAttention`
+    """
+    df_synset_meaning["meaning_clean"] = df_synset_meaning.meaning.copy()
+    df_synset_meaning["meaning_clean"] = df_synset_meaning.meaning_clean.str.lower()
+    df_synset_meaning["meaning_clean"] = df_synset_meaning.meaning_clean.str.replace("\[шилжсэн\]", "", regex=True)
+    df_synset_meaning["meaning_clean"] = df_synset_meaning.meaning_clean.str.replace("[\(\)]", "", regex=True)
+    
+    encoded = tokenizer.batch_encode_plus(
+        df_synset_meaning.meaning_clean.tolist(),
+        truncation=True,
+        max_length=max_length,
+        return_tensors="pt",
+        padding="max_length",
+    )
+
+    encoded = {k:v.to(device) for k, v in encoded.items()}
+    return encoded
+
 
 def preprocess_consecutive_item_error(df: pd.DataFrame, intersection_threshold=0.5):
     """
@@ -128,3 +149,16 @@ def handle_special_char(text): #handling #
 def count_intersections(s1, s2):
     tokens1, tokens2 = set(s1.split()), set(s2.split())
     return len(tokens1.intersection(tokens2))
+
+
+if __name__ == "__main__":
+    from transformers import AutoTokenizer
+    import torch
+
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    tokenizer = AutoTokenizer.from_pretrained("bayartsogt/mongolian-roberta-base")
+    df_synset_meaning = pd.read_csv("./data/synset_meaning.csv")
+    max_length = 30
+
+    encoded = encode_clean_meaning(df_synset_meaning, tokenizer, max_length, device)
+    print({k:v.shape for k, v in encoded.items()})

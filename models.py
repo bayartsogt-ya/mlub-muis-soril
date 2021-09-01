@@ -48,8 +48,13 @@ class MLUBModel(nn.Module):
         )
 
 class MLUBModelWithMeaningAttention(nn.Module):
-    def __init__(self, model_name_or_path, num_labels, inference=False, linear_dropout=0.1, base_model_dropout=None):
+    def __init__(self, model_name_or_path, num_labels, meaning_input_ids, meaning_attention_mask, inference=False, linear_dropout=0.1, base_model_dropout=None):
         super().__init__()
+
+        # assuming those tensors have already got device configured
+        self.meaning_input_ids = meaning_input_ids
+        self.meaning_attention_mask = meaning_attention_mask
+
         config = AutoConfig.from_pretrained(model_name_or_path)
         config.num_labels = num_labels
 
@@ -75,8 +80,7 @@ class MLUBModelWithMeaningAttention(nn.Module):
             # nn.Linear(config.hidden_size, num_labels),
         )
         
-    def forward(self, input_ids, attention_mask, start_end_mask, 
-                meaning_input_ids, meaning_attention_mask, labels=None):
+    def forward(self, input_ids, attention_mask, start_end_mask, labels=None):
         # input text
         outputs = self.base_model(
             input_ids=input_ids, 
@@ -90,8 +94,8 @@ class MLUBModelWithMeaningAttention(nn.Module):
         
         # meaning representation
         meaning_outputs = self.base_model(
-            input_ids=meaning_input_ids, 
-            attention_mask=meaning_attention_mask)
+            input_ids=self.meaning_input_ids, 
+            attention_mask=self.meaning_attention_mask)
         meaning_x = meaning_outputs.pooler_output
         meaning_x = self.meaning_linear(meaning_x)
 
@@ -175,15 +179,15 @@ if __name__ == "__main__":
         num_labels=num_labels,
         inference=True, 
         linear_dropout=0.1, 
-        base_model_dropout=None
+        base_model_dropout=None,
+        meaning_input_ids = meaning_input_ids,
+        meaning_attention_mask = meaning_attention_mask,
     ) 
 
     output = model(
         input_ids = input_ids,
         attention_mask = attention_mask,
         start_end_mask = start_end_mask,
-        meaning_input_ids = meaning_input_ids,
-        meaning_attention_mask = meaning_attention_mask,
     )
 
     print("output.logits.size():", output.logits.size())
