@@ -42,7 +42,7 @@ def tokenize_mlub(text, tokenizer, max_len):
 
     if "gpt" in tokenizer.name_or_path:
         padding_id = 1 # which is <pad>
-    if "tugstugi" in tokenizer.name_or_path:
+    if "tugstugi" in tokenizer.name_or_path or "mlub" in tokenizer.name_or_path:
         padding_id = 3
     input_ids.extend([padding_id] * (max_len - len(input_ids)))
 
