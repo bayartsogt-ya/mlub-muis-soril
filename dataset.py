@@ -18,7 +18,7 @@ class CustomDataset(Dataset):
     def __getitem__(self, index):
         return self.data[index]
 
-def tokenize_mlub(text, tokenizer, max_len):
+def tokenize_mlub(text, tokenizer, max_len, add_special_tokens=True):
     input_ids = []
     attention_mask = []
     start = end = None
@@ -26,8 +26,8 @@ def tokenize_mlub(text, tokenizer, max_len):
         if "#" in tok:
             tok = tok.split("#")[0]
             start = len(input_ids)
-            end = len(input_ids) + len(tokenizer.encode(tok))
-        input_ids += tokenizer.encode(tok + " ")
+            end = len(input_ids) + len(tokenizer.encode(tok, add_special_tokens = add_special_tokens))
+        input_ids += tokenizer.encode(tok + " ", add_special_tokens = add_special_tokens)
     attention_mask = [1] * len(input_ids)
 
     if len(input_ids) > max_len:
