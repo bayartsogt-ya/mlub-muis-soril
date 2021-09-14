@@ -4,10 +4,16 @@ from torch.utils.data import Dataset
 
 
 class CustomDataset(Dataset):
-    def __init__(self, df, tokenizer, max_len=150, add_special_tokens=True):
+    def __init__(self, df, tokenizer, max_len=150, add_special_tokens=True, class_token_pos=None):
         self.data = []
         for row in tqdm(df.itertuples(), total=df.shape[0]):
-            encoding = tokenize_mlub(row.text_truncated, tokenizer, max_len=max_len, add_special_tokens=add_special_tokens)
+            encoding = tokenize_mlub(
+                row.text_truncated, 
+                tokenizer, 
+                max_len=max_len, 
+                add_special_tokens=add_special_tokens, 
+                class_token_pos=class_token_pos
+            )
             # encoding = {k:v[0] for k, v in encoding.items()}
             encoding["labels"] = torch.tensor(row.synset_index, dtype=torch.long)
             # del encoding["start_end_mask"]
@@ -18,16 +24,21 @@ class CustomDataset(Dataset):
     def __getitem__(self, index):
         return self.data[index]
 
-def tokenize_mlub(text, tokenizer, max_len, add_special_tokens):
+def tokenize_mlub(text, tokenizer, max_len, add_special_tokens, class_token_pos=None):
     input_ids = []
     attention_mask = []
     start = end = None
+    if class_token_pos is not None and class_token_pos == "start":
+        input_ids += [tokenizer.cls_token_id]
     for index, tok in enumerate(text.split()):
         if "#" in tok:
             tok = tok.split("#")[0]
             start = len(input_ids)
-            end = len(input_ids) + len(tokenizer.encode(tok, add_special_tokens = add_special_tokens))
-        input_ids += tokenizer.encode(tok + " ", add_special_tokens = add_special_tokens)
+            end = len(input_ids) + len(tokenizer.encode(tok, add_special_tokens=add_special_tokens))
+            if class_token_pos is not None and class_token_pos == "synset":
+                input_ids += [tokenizer.cls_token_id]
+                end += 1
+        input_ids += tokenizer.encode(tok + " ", add_special_tokens=add_special_tokens)
     attention_mask = [1] * len(input_ids)
 
     if len(input_ids) > max_len:
